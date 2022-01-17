@@ -27,12 +27,11 @@ function! Open_new_test_buffer(test_id)
 endfunction
 
 function! Run_command(str)
-    execute "normal ".a:str
+    silent execute "normal ".a:str
 endfunction
 
 function! Run_before()
     for command in g:before
-        echo command
         if len(command) > 0
             call Run_command(command)
         endif
@@ -77,12 +76,11 @@ endfunction
 
 let s:l = 0
 let s:results = []
-execute 'edit results.vim'
+source tests.vim
+silent execute 'split results.vim'
+normal gg0dG
 function! Run_tests()
     for test_id in range(len(g:tests))
-        if test_id == 0
-            source tests.vim
-        endif
         call Open_new_test_buffer(test_id)
         call Run_before()
         call Run_test(test_id)
