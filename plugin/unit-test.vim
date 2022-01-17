@@ -71,6 +71,14 @@ endfunction
 "}}}---------------------------------------------------------------------------
 
 "----------------------------- Everything else --------------------------------
+function! s:create_results_buffer()
+    silent execute 'split results.vim'
+    setlocal buftype=nofile
+    setlocal bufhidden=hide
+    setlocal noswapfile
+    setlocal nobuflisted
+endfunction
+
 function! s:open_new_test_buffers(path, test_id)
     let suffix = string(a:test_id+1)
     for i in range(2)
@@ -116,7 +124,6 @@ function! s:find_line_diff(b1_line, b2_line)
 endfunction
 
 function! s:compare_buffers(b1, b2)
-    echo a:b1
     let b1_nlines = getbufinfo(a:b1)['variables']['linecount']
     let b2_nlines = getbufinfo(a:b2)['variables']['linecount']
     if b1_nlines == b2_nlines
@@ -137,7 +144,6 @@ function! s:compare_buffers(b1, b2)
 endfunction
 
 function! s:print_test_results(expected_buffer, test_buffer, position, test_id)
-    echo a:position
     if a:position[0] == 0 && a:position[1] == 0
         call appendbufline('results.vim', '$', 'Test '.string(a:test_id+1).' Passed!')
     elseif a:position[0] > 0 && a:position[1] > 0
@@ -161,23 +167,13 @@ function! s:print_test_results(expected_buffer, test_buffer, position, test_id)
     call appendbufline('results.vim', '$', '')
 endfunction
 
-function! s:create_results_buffer()
-    silent execute 'split results.vim'
-    setlocal buftype=nofile
-    setlocal bufhidden=hide
-    setlocal noswapfile
-    setlocal nobuflisted
-endfunction
-
 function! Run_tests(path)
-    echo a:path
     if a:path =~ '.*\/$'
         let [_, path] = s:extract_substrings(a:path, [[1, -2]])
         let path = path[0]
     else
         let path = a:path
     endif
-    echo path
     execute 'source '.path.'/tests.vim'
     call s:create_results_buffer()
     for test_id in range(len(g:tests))
