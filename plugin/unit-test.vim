@@ -72,7 +72,7 @@ endfunction
 
 "----------------------------- Everything else --------------------------------
 function! s:create_results_buffer()
-    silent execute 'edit .results.vim'
+    silent execute 'split results.vim'
     setlocal buftype=nofile
     setlocal bufhidden=hide
     setlocal noswapfile
@@ -185,6 +185,6 @@ function! Run_tests(path)
         call s:print_test_results(expected_buffer, test_buffer, [l, c], test_id)
         call s:close_test_buffers(test_buffer, expected_buffer)
     endfor
-    split .results.vim
+    split results.vim
 endfunction
 
