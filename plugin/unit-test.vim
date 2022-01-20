@@ -167,13 +167,17 @@ function! s:print_test_results(expected_buffer, test_buffer, position, test_id)
     call appendbufline('results.vim', '$', '')
 endfunction
 
-function! Run_tests(path)
+function! s:parse_path(path)
     if a:path =~ '.*\/$'
         let [_, path] = s:extract_substrings(a:path, [[1, -2]])
-        let path = path[0]
+        return = path[0]
     else
-        let path = a:path
+        return a:path
     endif
+endfunction
+
+function! Run_tests(path)
+    let path = s:parse_path(a:path)
     execute 'source '.path.'/tests.vim'
     call s:create_results_buffer()
     for test_id in range(len(g:tests))
