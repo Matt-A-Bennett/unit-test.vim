@@ -9,7 +9,7 @@
 "                                                                 
 "                                                                 
 " Author:       Matthew Bennett
-" Version:      0.1.0
+" Version:      0.1.1
 " License:      Same as Vim's (see :help license)
 "
 "
@@ -21,9 +21,10 @@ if exists("g:unit_test") || &cp || v:version < 700
 endif
 let g:unit_test = 1
 "}}}---------------------------------------------------------------------------
-"
 
-"----------------------------- Helper functions -------------------------------
+"==============================================================================
+
+"----------------------------- Helper Functions -------------------------------
 "{{{---------------------------------------------------------------------------
 "{{{- string2list -------------------------------------------------------------
 function! s:string2list(str)
@@ -68,9 +69,21 @@ function! s:extract_substrings(str, deletion_ranges)
     return [result, removed]
 endfunction
 "}}}---------------------------------------------------------------------------
+
+"{{{- parse_path --------------------------------------------------------------
+function! s:parse_path(path)
+    if a:path =~ '.*\/$'
+        let [_, path] = s:extract_substrings(a:path, [[1, -2]])
+        return = path[0]
+    else
+        return a:path
+    endif
+endfunction
+"}}}---------------------------------------------------------------------------
 "}}}---------------------------------------------------------------------------
 
-"----------------------------- Everything else --------------------------------
+"--------------------------- Open/Close Buffers -------------------------------
+"{{{- create_results_buffer ---------------------------------------------------
 function! s:create_results_buffer()
     silent execute 'split results.vim'
     setlocal buftype=nofile
@@ -78,7 +91,9 @@ function! s:create_results_buffer()
     setlocal noswapfile
     setlocal nobuflisted
 endfunction
+"}}}---------------------------------------------------------------------------
 
+"{{{- open_new_test_buffers ---------------------------------------------------
 function! s:open_new_test_buffers(path, test_id)
     let suffix = string(a:test_id+1)
     for i in range(2)
@@ -94,16 +109,23 @@ function! s:open_new_test_buffers(path, test_id)
     endfor
     return [a:path.'/expected_'.suffix, a:path.'/test_'.suffix]
 endfunction
+"}}}---------------------------------------------------------------------------
 
+"{{{- close_test_buffers ------------------------------------------------------
 function! s:close_test_buffers(test_buffer, expected_buffer)
     execute 'bwipeout '.a:test_buffer
     execute 'bwipeout '.a:expected_buffer
 endfunction
+"}}}---------------------------------------------------------------------------
 
+"------------------------------ Run Commands ----------------------------------
+"{{{- run_command -------------------------------------------------------------
 function! s:run_command(str)
     silent execute "normal ".a:str
 endfunction
+"}}}---------------------------------------------------------------------------
 
+"{{{- run_commands ------------------------------------------------------------
 function! s:run_commands(commands)
     for command in a:commands
         if len(command) > 0
@@ -111,7 +133,10 @@ function! s:run_commands(commands)
         endif
     endfor
 endfunction
+"}}}---------------------------------------------------------------------------
 
+"----------------------- Compare Results To Expected --------------------------
+"{{{- find_line_diff ----------------------------------------------------------
 function! s:find_line_diff(b1_line, b2_line)
     let b1 = s:string2list(a:b1_line)
     let b2 = s:string2list(a:b2_line)
@@ -122,7 +147,9 @@ function! s:find_line_diff(b1_line, b2_line)
     endfor
     return min([len(b1), len(b2)])+1
 endfunction
+"}}}---------------------------------------------------------------------------
 
+"{{{- compare_buffers ---------------------------------------------------------
 function! s:compare_buffers(b1, b2)
     let b1_nlines = getbufinfo(a:b1)['variables']['linecount']
     let b2_nlines = getbufinfo(a:b2)['variables']['linecount']
@@ -142,7 +169,10 @@ function! s:compare_buffers(b1, b2)
         return [-1, -1]
     endif
 endfunction
+"}}}---------------------------------------------------------------------------
 
+"----------------------------- Print Results ----------------------------------
+"{{{- print_test_results ------------------------------------------------------
 function! s:print_test_results(expected_buffer, test_buffer, position, test_id)
     if a:position[0] == 0 && a:position[1] == 0
         call appendbufline('results.vim', '$', 'Test '.string(a:test_id+1).' Passed!')
@@ -166,14 +196,12 @@ function! s:print_test_results(expected_buffer, test_buffer, position, test_id)
     endif
     call appendbufline('results.vim', '$', '')
 endfunction
+"}}}---------------------------------------------------------------------------
 
+"-------------------------------- Run Test ------------------------------------
+"{{{- Run_tests ---------------------------------------------------------------
 function! Run_tests(path)
-    if a:path =~ '.*\/$'
-        let [_, path] = s:extract_substrings(a:path, [[1, -2]])
-        let path = path[0]
-    else
-        let path = a:path
-    endif
+    let path = s:parse_path(a:path)
     execute 'source '.path.'/tests.vim'
     call s:create_results_buffer()
     for test_id in range(len(g:tests))
@@ -187,4 +215,5 @@ function! Run_tests(path)
     endfor
     split results.vim
 endfunction
+"}}}---------------------------------------------------------------------------
 
