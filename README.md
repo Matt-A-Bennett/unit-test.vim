@@ -1,4 +1,4 @@
-# unit-test.vim
+# vim-unit-test
 In its current state this plugin probably isn't much use to anybody. I
 originally developed it while writing (and testing!) my [surround-funk.vim
 plugin](https://github.com/Matt-A-Bennett/surround-funk.vim) - which I hope is
