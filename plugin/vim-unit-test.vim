@@ -9,7 +9,7 @@
 "                                                                 
 "                                                                 
 " Author:       Matthew Bennett
-" Version:      0.1.1
+" Version:      0.2.0
 " License:      Same as Vim's (see :help license)
 "
 "
@@ -25,6 +25,7 @@ let g:unit_test = 1
 "==============================================================================
 
 "----------------------------- Helper Functions -------------------------------
+
 "{{{---------------------------------------------------------------------------
 "{{{- string2list -------------------------------------------------------------
 function! s:string2list(str)
@@ -80,9 +81,32 @@ function! s:parse_path(path)
     endif
 endfunction
 "}}}---------------------------------------------------------------------------
+
+"{{{- empty_line --------------------------------------------------------------
+function! s:empty_line(buffer, line)
+    call appendbufline(a:buffer, a:line, '')
+endfunction
+"}}}---------------------------------------------------------------------------
+
+"{{{- put_from_buffer ---------------------------------------------------------
+function! s:put_from_buffer(to_buffer, from_buffer, space)
+    if a:space[0]
+        call s:empty_line(a:to_buffer, '$')
+    endif
+    call appendbufline('results.vim', '$', '-------------------------------------------------------------------------------')
+    for i in range(getbufinfo(a:from_buffer)['variables']['linecount'])
+        call appendbufline(a:to_buffer, '$', getbufline(a:from_buffer, i+1))
+    endfor
+    call appendbufline('results.vim', '$', '-------------------------------------------------------------------------------')
+    if a:space[1]
+        call s:empty_line(a:to_buffer, '$')
+    endif
+endfunction
+"}}}---------------------------------------------------------------------------
 "}}}---------------------------------------------------------------------------
 
 "--------------------------- Open/Close Buffers -------------------------------
+
 "{{{- create_results_buffer ---------------------------------------------------
 function! s:create_results_buffer()
     silent execute 'split results.vim'
@@ -119,6 +143,7 @@ endfunction
 "}}}---------------------------------------------------------------------------
 
 "------------------------------ Run Commands ----------------------------------
+
 "{{{- run_command -------------------------------------------------------------
 function! s:run_command(str)
     silent execute "normal ".a:str
@@ -136,6 +161,7 @@ endfunction
 "}}}---------------------------------------------------------------------------
 
 "----------------------- Compare Results To Expected --------------------------
+
 "{{{- find_line_diff ----------------------------------------------------------
 function! s:find_line_diff(b1_line, b2_line)
     let b1 = s:string2list(a:b1_line)
@@ -171,49 +197,46 @@ function! s:compare_buffers(b1, b2)
 endfunction
 "}}}---------------------------------------------------------------------------
 
-"----------------------------- Print Results ----------------------------------
-"{{{- print_test_results ------------------------------------------------------
-function! s:print_test_results(expected_buffer, test_buffer, position, test_id)
-    if a:position[0] == 0 && a:position[1] == 0
-        call appendbufline('results.vim', '$', 'Test '.string(a:test_id+1).' Passed!')
-    elseif a:position[0] > 0 && a:position[1] > 0
-        call appendbufline('results.vim', '$', 'Test '.string(a:test_id+1).' Failed')
-        call appendbufline('results.vim', '$', '')
-        call appendbufline('results.vim', '$', 'Expected:')
-        call appendbufline('results.vim', '$', '')
-        for i in range(getbufinfo(a:expected_buffer)['variables']['linecount'])
-            call appendbufline('results.vim', '$', getbufline(a:expected_buffer, i+1))
-        endfor
-        call appendbufline('results.vim', '$', '')
-        call appendbufline('results.vim', '$', 'Actual:')
-        call appendbufline('results.vim', '$', '')
-        for i in range(getbufinfo(a:test_buffer)['variables']['linecount'])
-            call appendbufline('results.vim', '$', getbufline(a:test_buffer, i+1))
-        endfor
-    else
-        call appendbufline('results.vim', '$', 'Test '.string(a:test_id+1).' Failed')
-        call appendbufline('results.vim', '$', '    Different number of lines')
-    endif
-    call appendbufline('results.vim', '$', '')
+"{{{- log_errors ------------------------------------------------------
+function! s:log_errors(expected_buffer, result_buffer, test_id, command)
+    call appendbufline('results.vim', '$', '===============================================================================')
+    call appendbufline('results.vim', '$', 'Test '.string(a:test_id+1).' Failed: '.join(a:command, ''))
+        call s:empty_line('results.vim', '$')
+    " call appendbufline('results.vim', '$', 'Input:')
+    " call s:put_from_buffer('results.vim', a:input_buffer)
+    call appendbufline('results.vim', '$', 'Actual:')
+    call s:put_from_buffer('results.vim', a:result_buffer, [1, 1])
+    call appendbufline('results.vim', '$', 'Expected:')
+    call s:put_from_buffer('results.vim', a:expected_buffer, [1, 1])
 endfunction
 "}}}---------------------------------------------------------------------------
 
 "-------------------------------- Run Test ------------------------------------
+
 "{{{- Run_tests ---------------------------------------------------------------
 function! Run_tests(path)
     let path = s:parse_path(a:path)
     execute 'source '.path.'/tests.vim'
     call s:create_results_buffer()
+    let passed = 0
     for test_id in range(len(g:tests))
-        let [expected_buffer, test_buffer] = s:open_new_test_buffers(path, test_id)
+        let command = g:tests[test_id]
+        let [expected_buffer, result_buffer] = s:open_new_test_buffers(path, test_id)
         call s:run_commands(g:before)
-        call s:run_commands(g:tests[test_id])
+        call s:run_commands(command)
         call s:run_commands(g:after)
-        let [l, c] = s:compare_buffers(expected_buffer, test_buffer)
-        call s:print_test_results(expected_buffer, test_buffer, [l, c], test_id)
-        call s:close_test_buffers(test_buffer, expected_buffer)
+        let [l, c] = s:compare_buffers(expected_buffer, result_buffer)
+        if l == 0 && c == 0
+            let passed += 1
+        else
+            " call s:log_errors(input_buffer, result_buffer, expected_buffer, [l, c], test_id, g:tests[test_id])
+            call s:log_errors(result_buffer, expected_buffer, test_id, command)
+        endif
+        call s:close_test_buffers(result_buffer, expected_buffer)
     endfor
+    call appendbufline('results.vim', 0, string(passed).'/'.string(test_id+1).' Tests passed')
+    call appendbufline('results.vim', 1, '__________________')
+    call s:empty_line('results.vim', 2)
     split results.vim
 endfunction
 "}}}---------------------------------------------------------------------------
-
