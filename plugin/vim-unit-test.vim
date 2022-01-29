@@ -218,25 +218,26 @@ function! Run_tests(path)
     let path = s:parse_path(a:path)
     execute 'source '.path.'/tests.vim'
     call s:create_results_buffer()
-    let passed = 0
+    let tests_passed = 0
     for test_id in range(len(g:tests))
-        let command = g:tests[test_id]
+        let commands = g:tests[test_id]
         let [expected_buffer, result_buffer] = s:open_new_test_buffers(path, test_id)
         call s:run_commands(g:before)
-        call s:run_commands(command)
+        call s:run_commands(commands)
         call s:run_commands(g:after)
         let [l, c] = s:compare_buffers(expected_buffer, result_buffer)
         if l == 0 && c == 0
-            let passed += 1
+            let tests_passed += 1
         else
             " call s:log_errors(input_buffer, result_buffer, expected_buffer, [l, c], test_id, g:tests[test_id])
-            call s:log_errors(result_buffer, expected_buffer, test_id, command)
+            call s:log_errors(result_buffer, expected_buffer, test_id, commands)
         endif
         call s:close_test_buffers(result_buffer, expected_buffer)
     endfor
-    call appendbufline('results.vim', 0, string(passed).'/'.string(test_id+1).' Tests passed')
+    call appendbufline('results.vim', 0, string(tests_passed).'/'.string(test_id+1).' Tests passed')
     call appendbufline('results.vim', 1, '__________________')
     call s:empty_line('results.vim', 2)
     split results.vim
 endfunction
 "}}}---------------------------------------------------------------------------
+
