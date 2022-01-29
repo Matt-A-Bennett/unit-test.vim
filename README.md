@@ -1,13 +1,16 @@
 # vim-unit-test
 In its current state this plugin probably isn't much use to anybody. I
-originally developed it while writing (and testing!) my [surround-funk.vim
-plugin](https://github.com/Matt-A-Bennett/surround-funk.vim) - which I hope is
+originally developed it while writing (and testing!) my [vim-surround-funk
+plugin](https://github.com/Matt-A-Bennett/vim-surround-funk) - which I hope is
 useful to many! 
 
-The unit-test.vim plugin allows you to run a preset list of normal commands on
+The vim-unit-test plugin allows you to run a preset list of normal commands on
 some text in a buffer, and compare the results to another buffer containing the
 expected results. If the results match, the test is passed, if not, then the
 test is failed.
 
-A summary of the passes and failures are shown in a split buffer. On tests that
-failed, a copy of the expected and actual results are printed.
+A diagnostics page is opened (in a buffer) showing the number of
+passes/failures. For each failure, the command, the original input, the result
+of applying the command, and the expected results are printed. This makes it
+easy to go try the command yourself on the original input and watch where it
+goes wrong.
