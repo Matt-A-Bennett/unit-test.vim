@@ -200,7 +200,7 @@ endfunction
 "{{{- log_errors ------------------------------------------------------
 function! s:log_errors(expected_buffer, result_buffer, test_id, command)
     call appendbufline('results.vim', '$', '===============================================================================')
-    call appendbufline('results.vim', '$', 'Test '.string(a:test_id+1).' Failed: '.join(a:command, ''))
+    call appendbufline('results.vim', '$', 'Test '.string(a:test_id+1).' Failed: '.join(a:command, ' -> '))
         call s:empty_line('results.vim', '$')
     " call appendbufline('results.vim', '$', 'Input:')
     " call s:put_from_buffer('results.vim', a:input_buffer)
