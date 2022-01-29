@@ -254,7 +254,7 @@ function! Run_tests(path)
         if l == 0 && c == 0
             let tests_passed += 1
         else
-            call s:log_errors(input_buffer, result_buffer, expected_buffer, test_id, commands)
+            call s:log_errors(input_buffer, expected_buffer, result_buffer, test_id, commands)
         endif
         call s:close_test_buffers(result_buffer, expected_buffer)
     endfor
