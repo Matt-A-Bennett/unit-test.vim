@@ -75,7 +75,7 @@ endfunction
 function! s:parse_path(path)
     if a:path =~ '.*\/$'
         let [_, path] = s:extract_substrings(a:path, [[1, -2]])
-        return = path[0]
+        return path[0]
     else
         return a:path
     endif
