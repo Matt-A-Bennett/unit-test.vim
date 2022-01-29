@@ -214,12 +214,10 @@ endfunction
 "}}}---------------------------------------------------------------------------
 
 "{{{- log_errors ------------------------------------------------------
-function! s:log_errors(expected_buffer, result_buffer, test_id, command)
+function! s:log_errors(input_buffer, expected_buffer, result_buffer, test_id, command)
     call appendbufline('results.vim', '$', '===============================================================================')
     call appendbufline('results.vim', '$', 'Test '.string(a:test_id+1).' Failed: '.join(a:command, ' -> '))
-        call s:empty_line('results.vim', '$')
-    " call appendbufline('results.vim', '$', 'Input:')
-    " call s:put_from_buffer('results.vim', a:input_buffer)
+    call appendbufline('results.vim', '$', a:input_buffer)
     call appendbufline('results.vim', '$', 'Actual:')
     call s:put_from_buffer('results.vim', a:result_buffer, [1, 1])
     call appendbufline('results.vim', '$', 'Expected:')
@@ -238,6 +236,7 @@ function! Run_tests(path)
     for test_id in range(len(g:tests))
         let commands = g:tests[test_id]
         let [expected_buffer, result_buffer] = s:open_new_test_buffers(path, test_id)
+        let input_buffer = s:store_buffer_contents(result_buffer, [1, 1])
         call s:run_commands(g:before)
         call s:run_commands(commands)
         call s:run_commands(g:after)
@@ -245,15 +244,15 @@ function! Run_tests(path)
         if l == 0 && c == 0
             let tests_passed += 1
         else
-            " call s:log_errors(input_buffer, result_buffer, expected_buffer, [l, c], test_id, g:tests[test_id])
-            call s:log_errors(result_buffer, expected_buffer, test_id, commands)
+            call s:log_errors(input_buffer, result_buffer, expected_buffer, test_id, commands)
         endif
         call s:close_test_buffers(result_buffer, expected_buffer)
     endfor
     call appendbufline('results.vim', 0, string(tests_passed).'/'.string(test_id+1).' Tests passed')
     call appendbufline('results.vim', 1, '__________________')
     call s:empty_line('results.vim', 2)
-    split results.vim
+    edit results.vim
+    call setreg("/", 'Failed')
 endfunction
 "}}}---------------------------------------------------------------------------
 
