@@ -103,6 +103,22 @@ function! s:put_from_buffer(to_buffer, from_buffer, space)
     endif
 endfunction
 "}}}---------------------------------------------------------------------------
+"
+function! s:store_buffer_contents(buffer, space)
+    let lines = []
+    if a:space[0]
+        let lines += ['']
+    endif
+    let lines += ['-------------------------------------------------------------------------------']
+    for i in range(getbufinfo(a:buffer)['variables']['linecount'])
+        let lines += getbufline(a:buffer, i+1)
+    endfor
+    let lines += ['-------------------------------------------------------------------------------']
+    if a:space[1]
+        let lines += ['']
+    endif
+    return lines
+endfunction
 "}}}---------------------------------------------------------------------------
 
 "--------------------------- Open/Close Buffers -------------------------------
