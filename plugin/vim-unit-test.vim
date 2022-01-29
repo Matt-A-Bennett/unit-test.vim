@@ -225,7 +225,17 @@ function! s:log_errors(input_buffer, expected_buffer, result_buffer, test_id, co
 endfunction
 "}}}---------------------------------------------------------------------------
 
-"-------------------------------- Run Test ------------------------------------
+"-------------------------------- Run Tests -----------------------------------
+
+"{{{- open_final_results ------------------------------------------------------
+function! s:open_final_results()
+    edit results.vim
+    call setreg("/", 'Failed')
+    set nowrap
+    set number
+    set relativenumber
+endfunction
+"}}}---------------------------------------------------------------------------
 
 "{{{- Run_tests ---------------------------------------------------------------
 function! Run_tests(path)
@@ -251,8 +261,7 @@ function! Run_tests(path)
     call appendbufline('results.vim', 0, string(tests_passed).'/'.string(test_id+1).' Tests passed')
     call appendbufline('results.vim', 1, '__________________')
     call s:empty_line('results.vim', 2)
-    edit results.vim
-    call setreg("/", 'Failed')
+    call s:open_final_results()
 endfunction
 "}}}---------------------------------------------------------------------------
 
