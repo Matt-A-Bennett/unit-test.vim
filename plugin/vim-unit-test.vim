@@ -217,6 +217,8 @@ endfunction
 function! s:log_errors(input_buffer, expected_buffer, result_buffer, test_id, command)
     call appendbufline('results.vim', '$', '===============================================================================')
     call appendbufline('results.vim', '$', 'Test '.string(a:test_id+1).' Failed: '.join(a:command, ' -> '))
+    call s:empty_line('results.vim', '$')
+    call appendbufline('results.vim', '$', 'Input:')
     call appendbufline('results.vim', '$', a:input_buffer)
     call appendbufline('results.vim', '$', 'Actual:')
     call s:put_from_buffer('results.vim', a:result_buffer, [1, 1])
@@ -231,6 +233,7 @@ endfunction
 function! s:open_final_results()
     edit results.vim
     call setreg("/", 'Failed')
+    syntax on
     set nowrap
     set number
     set relativenumber
