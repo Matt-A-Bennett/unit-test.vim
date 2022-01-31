@@ -134,8 +134,8 @@ endfunction
 "}}}---------------------------------------------------------------------------
 
 "{{{- open_new_test_buffers ---------------------------------------------------
-function! s:open_new_test_buffers(path, test_id)
-    let suffix = string(a:test_id+1)
+function! s:open_new_test_buffers(path, test_id, filetype)
+    let suffix = string(a:test_id+1).a:filetype
     for i in range(2)
         if i == 0
             execute 'edit '.a:path.'/expected_'.suffix
@@ -247,8 +247,9 @@ function! Run_tests(path)
     call s:create_results_buffer()
     let tests_passed = 0
     for test_id in range(len(g:tests))
-        let commands = g:tests[test_id]
-        let [expected_buffer, result_buffer] = s:open_new_test_buffers(path, test_id)
+        let commands = g:tests[test_id][0]
+        let filetype = g:tests[test_id][1]
+        let [expected_buffer, result_buffer] = s:open_new_test_buffers(path, test_id, filetype)
         let input_buffer = s:store_buffer_contents(result_buffer, [1, 1])
         call s:run_commands(g:before)
         call s:run_commands(commands)
